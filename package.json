@@ -1,0 +1,14 @@
+{
+  "name": "file-system-browser",
+  "version": "1.0.0",
+  "description": "A web application for browsing the file system and viewing images.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  },
+  "author": "",
+  "license": "ISC"
+}

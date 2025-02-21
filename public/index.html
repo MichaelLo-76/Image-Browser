@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>File System Browser</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <button id="back-button">Back</button>
+            <button id="root-button">Root</button>
+            <button id="clear-image-button">Clear Image</button>
+            <ul id="folder-list">
+                <!-- Folder structure will be populated here -->
+            </ul>
+        </div>
+        <div class="content">
+            <div class="thumbnails">
+                <div id="thumbnail-list">
+                    <!-- Image thumbnails will be populated here -->
+                </div>
+            </div>
+            <div class="original-image" id="original-image">
+                <!-- Original image will be displayed here -->
+            </div>
+        </div>
+    </div>
+    <script src="scripts/app.js"></script>
+</body>
+
+</html>
