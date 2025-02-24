@@ -98,13 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
     fetchAndDisplayFolders();
 });
 
-function fetchAndDisplayFolders(directory = '') {
+function fetchAndDisplayFolders(directory = '/data') {
     imageContainer.innerHTML = ''; // 清空 original-image 容器
     fetch(`/api/folders?directory=${encodeURIComponent(directory)}`)
         .then(response => response.json())
-        .then(folders => {
+        .then(data => {
+            const { folders, archives } = data;
             const folderList = document.getElementById('folder-list');
             folderList.innerHTML = ''; // Clear the current list
+
+            // 顯示文件夾
             folders.forEach(folder => {
                 const button = document.createElement('button');
                 button.textContent = folder;
@@ -114,7 +117,38 @@ function fetchAndDisplayFolders(directory = '') {
                 });
                 folderList.appendChild(button);
             });
-            currentDirectory=directory;
+
+            // 添加分隔線
+            if (archives.length > 0) {
+                const separator = document.createElement('hr');
+                folderList.appendChild(separator);
+            }
+
+            // 顯示壓縮檔案
+            archives.forEach(archive => {
+                const button = document.createElement('button');
+                button.textContent = archive;
+                button.style.backgroundColor = '#FFD700'; // 設置不同顏色
+                button.addEventListener('click', () => {
+                    const archivePath = `${directory}/${archive}`;
+                    const folderName = archive.replace(/\.[^/.]+$/, ""); // 去掉擴展名
+                    const targetDirectory = `${directory}/${folderName}`;
+                    fetch(`/api/unzip?archive=${encodeURIComponent(archivePath)}&target=${encodeURIComponent(targetDirectory)}`, { method: 'POST' })
+                        .then(response => {
+                            if (response.ok) {
+                                return response.json();
+                            } else {
+                                throw new Error('Failed to unzip archive');
+                            }
+                        })
+                        .then(() => {
+                            fetchAndDisplayFolders(directory); // 重新整理 sidebar
+                        })
+                        .catch(error => console.error('Error unzipping archive:', error));
+                });
+                folderList.appendChild(button);
+            });
+            currentDirectory = directory;
         })
         .catch(error => console.error('Error fetching folders:', error));
 }
