@@ -13,7 +13,8 @@ router.get('/folders', (req, res) => {
 
 router.get('/images', (req, res) => {
     const directory = req.query.directory || ''; // 從查詢參數中獲取目錄路徑，默認為根目錄
-    fileController.getImages(directory)
+    const regenThumbnail = req.query.regenThumbnail === 'true'; // 從查詢參數中獲取目錄路徑，默認為根目錄
+    fileController.getImages(directory, regenThumbnail)
         .then(images => res.json(images))
         .catch(err => res.status(500).json({ error: err.message }));
 });

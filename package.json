@@ -9,6 +9,7 @@
   "dependencies": {
     "archiver": "^7.0.1",
     "express": "^4.17.1",
+    "sharp": "^0.33.5",
     "unzipper": "^0.12.3"
   },
   "author": "",

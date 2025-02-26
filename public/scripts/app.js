@@ -24,10 +24,16 @@ rootButton.addEventListener('click', () => {
 
 clearImageButton.addEventListener('click', () => {
     imageContainer.innerHTML = ''; // 清空 original-image 容器
+    fetchImages(currentDirectory, true);
 });
 
-function fetchImages(directory) {
-    fetch(`/api/images?directory=${encodeURIComponent(directory)}`)
+document.getElementById("toggleSidebar").addEventListener("click", function () {
+    let sidebar = document.getElementById("sidebar");
+    sidebar.classList.toggle("hidden");
+});
+
+function fetchImages(directory, regenThumbnail = false) {
+    fetch(`/api/images?directory=${encodeURIComponent(directory)}&regenThumbnail=${encodeURIComponent(regenThumbnail)}`)
         .then(response => response.json())
         .then(data => {
             currentImages = data; // 存儲當前目錄的圖片列表
