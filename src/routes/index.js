@@ -26,4 +26,23 @@ router.post('/unzip', (req, res) => {
         .catch(err => res.status(500).json({ error: err.message }));
 });
 
+router.post('/compress', (req, res) => {
+    const folder = req.query.folder;
+    const archive = req.query.archive;
+    fileController.compressAndDelete(folder, archive)
+        .then(() => res.json({ message: 'Folder compressed and deleted successfully' }))
+        .catch(err => res.status(500).json({ error: err.message }));
+});
+
+router.post('/rename', async (req, res) => {
+    const oldPath = req.query.oldPath;
+    const newPath = req.query.newPath;
+    try {
+        await fileController.renameFolder(oldPath, newPath);
+        res.json({ message: 'Folder renamed successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

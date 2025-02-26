@@ -116,6 +116,21 @@ function fetchAndDisplayFolders(directory = '/data') {
                     fetchImages(`${directory}/${folder}`);
                 });
                 folderList.appendChild(button);
+
+                const menuButton = document.createElement('button');
+                menuButton.textContent = '⋮'; // 或者使用圖標
+                menuButton.className = 'menu-button';
+                menuButton.addEventListener('click', (event) => {
+                    event.stopPropagation(); // 阻止事件冒泡
+                    showContextMenu(event, folder, directory);
+                });
+
+                const container = document.createElement('div');
+                container.className = 'button-container';
+                container.appendChild(button);
+                container.appendChild(menuButton);
+
+                folderList.appendChild(container);  
             });
 
             // 添加分隔線
@@ -146,9 +161,99 @@ function fetchAndDisplayFolders(directory = '/data') {
                         })
                         .catch(error => console.error('Error unzipping archive:', error));
                 });
-                folderList.appendChild(button);
+
+                const menuButton = document.createElement('button');
+                menuButton.textContent = '⋮'; // 或者使用圖標
+                menuButton.className = 'menu-button';
+                menuButton.addEventListener('click', (event) => {
+                    event.stopPropagation(); // 阻止事件冒泡
+                    // showContextMenu(event, archive, directory);
+                });
+
+                const container = document.createElement('div');
+                container.className = 'button-container';
+                container.appendChild(button);
+                container.appendChild(menuButton);
+
+                folderList.appendChild(container);
             });
             currentDirectory = directory;
         })
         .catch(error => console.error('Error fetching folders:', error));
+}
+
+function showContextMenu(event, name, directory) {
+    const contextMenu = document.createElement('div');
+    contextMenu.className = 'context-menu';
+    contextMenu.style.top = `${event.clientY}px`;
+    contextMenu.style.left = `${event.clientX}px`;
+
+    console.log(`Context menu position: top=${event.clientY}, left=${event.clientX}`);
+
+    const compressOption = document.createElement('button');
+    compressOption.textContent = 'Compress and Delete';
+    compressOption.className = 'button';
+    compressOption.addEventListener('click', () => {
+        compressAndDelete(name, directory);
+        document.body.removeChild(contextMenu);
+    });
+
+    const renameOption = document.createElement('button');
+    renameOption.textContent = 'Rename';
+    renameOption.className = 'button';
+    renameOption.addEventListener('click', () => {
+        showRenamePrompt(name, directory);
+        document.body.removeChild(contextMenu);
+    });
+
+    contextMenu.appendChild(compressOption);
+    contextMenu.appendChild(renameOption);
+    document.body.appendChild(contextMenu);
+
+    document.addEventListener('click', () => {
+        if (document.body.contains(contextMenu)) {
+            document.body.removeChild(contextMenu);
+        }
+    }, { once: true });
+}
+
+function compressAndDelete(name, directory) {
+    const folderPath = `${directory}/${name}`;
+    const archivePath = `${directory}/${name}.zip`;
+    fetch(`/api/compress?folder=${encodeURIComponent(folderPath)}&archive=${encodeURIComponent(archivePath)}`, { method: 'POST' })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Failed to compress and delete folder');
+            }
+        })
+        .then(() => {
+            fetchAndDisplayFolders(directory); // 重新整理 sidebar
+        })
+        .catch(error => console.error('Error compressing and deleting folder:', error));
+}
+
+function showRenamePrompt(name, directory) {
+    const newName = prompt('Enter new name:', name);
+    if (newName && newName !== name) {
+        renameFolder(name, newName, directory);
+    }
+}
+
+function renameFolder(oldName, newName, directory) {
+    const oldPath = `${directory}/${oldName}`;
+    const newPath = `${directory}/${newName}`;
+    fetch(`/api/rename?oldPath=${encodeURIComponent(oldPath)}&newPath=${encodeURIComponent(newPath)}`, { method: 'POST' })
+        .then(response => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error('Failed to rename folder');
+            }
+        })
+        .then(() => {
+            fetchAndDisplayFolders(directory); // 重新整理 sidebar
+        })
+        .catch(error => console.error('Error renaming folder:', error));
 }

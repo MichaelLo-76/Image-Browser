@@ -1,4 +1,5 @@
 const fs = require('fs'); // 使用 fs 來獲取 createReadStream 方法
+const archiver = require('archiver');
 
 class FileController {
     constructor() {
@@ -65,7 +66,6 @@ class FileController {
     }
 
     async unzip(archive, target) {
-        console.log(`Unzipping archive: ${archive} to target: ${target}`);
         const archivePath = this.path.join(this.staticDir, archive);
         const targetPath = this.path.join(this.staticDir, target);
 
@@ -88,9 +88,7 @@ class FileController {
                 .pipe(unzipper.Extract({ path: targetPath }))
                 .promise()
                 .then(async () => {
-                    console.log(`Successfully unzipped ${archive} to ${target}`);
                     await this.fs.unlink(archivePath); // 移除壓縮檔案
-                    console.log(`Successfully removed archive: ${archive}`);
                 })
                 .catch(err => {
                     console.error(`Error unzipping archive: ${archive}`, err);
@@ -98,6 +96,48 @@ class FileController {
                 });
         } catch (err) {
             console.error(`Error unzipping archive: ${archive}`, err);
+            throw err;
+        }
+    }
+
+    async compressAndDelete(folder, archive) {
+        const folderPath = this.path.join(this.staticDir, folder);
+        const archivePath = this.path.join(this.staticDir, archive);
+
+        return new Promise((resolve, reject) => {
+            const output = fs.createWriteStream(archivePath);
+            const archive = archiver('zip', {
+                zlib: { level: 9 }
+            });
+
+            output.on('close', async () => {
+                try {
+                    await this.fs.rmdir(folderPath, { recursive: true });
+                    resolve();
+                } catch (err) {
+                    reject(err);
+                }
+            });
+
+            archive.on('error', (err) => {
+                reject(err);
+            });
+
+            archive.pipe(output);
+            archive.directory(folderPath, false);
+            archive.finalize();
+        });
+    }
+
+    async renameFolder(oldDir, newDir) {
+        const oldPath = this.path.join(this.staticDir, oldDir);
+        const newPath = this.path.join(this.staticDir, newDir);
+
+        try {
+            console.log(`Rename archive: ${oldPath} to target: ${newPath}`);
+            await this.fs.rename(oldPath, newPath);
+        } catch (err) {
+            console.error(`Error renaming folder: ${oldPath}`, err);
             throw err;
         }
     }
