@@ -1,8 +1,10 @@
 const express = require('express');
 const { FileController } = require('../controllers/fileController');
+const { ArchiveHandler } = require('../controllers/archiveHandler');
 
 const router = express.Router();
 const fileController = new FileController();
+const archiveHandler = new ArchiveHandler();
 
 router.get('/folders', (req, res) => {
     const directory = req.query.directory || ''; // 從查詢參數中獲取目錄路徑，默認為根目錄
@@ -22,7 +24,7 @@ router.get('/images', (req, res) => {
 router.post('/unzip', (req, res) => {
     const archive = req.query.archive; // 從查詢參數中獲取檔案路徑
     const target = req.query.target; // 從查詢參數中獲取目錄路徑
-    fileController.unzip(archive, target)
+    archiveHandler.unzip(archive, target)
         .then(result => res.json({ message: 'File unzipped successfully', result }))
         .catch(err => res.status(500).json({ error: err.message }));
 });
@@ -30,7 +32,7 @@ router.post('/unzip', (req, res) => {
 router.post('/compress', (req, res) => {
     const folder = req.query.folder;
     const archive = req.query.archive;
-    fileController.compressAndDelete(folder, archive)
+    archiveHandler.compressAndDelete(folder, archive)
         .then(() => res.json({ message: 'Folder compressed and deleted successfully' }))
         .catch(err => res.status(500).json({ error: err.message }));
 });
