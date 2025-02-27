@@ -1,6 +1,9 @@
 # 使用 Alpine Linux 作為基礎映像
 FROM node:18-alpine
 
+# 安裝 bash
+RUN apk add --no-cache bash
+
 # 設置工作目錄
 WORKDIR /app
 
