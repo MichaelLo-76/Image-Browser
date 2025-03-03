@@ -11,6 +11,8 @@ const HTTP_PORT = 3001;
 
 // 這會讓 public 資料夾內的所有檔案都變成靜態檔案
 app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.json()); // 確保 Express 解析 JSON
+app.use(express.urlencoded({ extended: true })); // 可選，用於處理 URL Encoded 格式
 app.use('/api', routes);
 
 // 設定憑證文件

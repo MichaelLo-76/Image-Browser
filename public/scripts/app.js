@@ -8,18 +8,28 @@ let currentDirectory = '';
 let currentImageIndex = -1;
 let currentImages = [];
 
+async function moveToDirectory(directory) {
+    const previousDirectory = currentDirectory;
+    currentDirectory = directory;
+    await fetchImages(currentDirectory);
+    updateConfig(previousDirectory, currentImageIndex);
+    fetchAndDisplayFolders(currentDirectory);
+    currentImageIndex = await loadConfig(currentDirectory);
+    debugLog(`currentImageIndex: ${currentImageIndex}, currentImages.length: ${currentImages.length}`);
+    if (currentImageIndex > -1 && currentImages.length > 0) {
+        showOriginalImage(currentImages[currentImageIndex].path);
+        debugLog(`Displayed image at index ${currentImageIndex}`);
+    }
+}
+
 backButton.addEventListener('click', () => {
     const parts = currentDirectory.split('/');
     parts.pop(); // 移除最後一個部分
-    currentDirectory = parts.join('/');
-    fetchAndDisplayFolders(currentDirectory);
-    fetchImages(currentDirectory);
+    moveToDirectory(parts.join('/'));
 });
 
 rootButton.addEventListener('click', () => {
-    currentDirectory = '/data';
-    fetchAndDisplayFolders(currentDirectory);
-    fetchImages(currentDirectory);
+    moveToDirectory('/data');
 });
 
 clearImageButton.addEventListener('click', () => {
@@ -33,7 +43,7 @@ document.getElementById("toggleSidebar").addEventListener("click", function () {
 });
 
 function fetchImages(directory, regenThumbnail = false) {
-    fetch(`/api/images?directory=${encodeURIComponent(directory)}&regenThumbnail=${encodeURIComponent(regenThumbnail)}`)
+    return fetch(`/api/images?directory=${encodeURIComponent(directory)}&regenThumbnail=${encodeURIComponent(regenThumbnail)}`)
         .then(response => response.json())
         .then(data => {
             currentImages = data; // 存儲當前目錄的圖片列表
@@ -51,7 +61,10 @@ function renderThumbnails(images) {
         imgElement.src = image.thumbnail;
         imgElement.alt = image.name;
         imgElement.className = 'thumbnails'; // 添加 CSS 類名
-        imgElement.onclick = () => showOriginalImage(image.path, index);
+        imgElement.addEventListener('click', () => {
+            currentImageIndex = index;
+            showOriginalImage(image.path);
+        });
         thumbnailList.appendChild(imgElement);
     });
 
@@ -62,8 +75,7 @@ function renderThumbnails(images) {
     }
 }
 
-function showOriginalImage(imagePath, index) {
-    currentImageIndex = index; // 更新當前顯示的圖片索引
+function showOriginalImage(imagePath) {
     const originalImage = document.createElement('img');
     originalImage.src = imagePath;
     originalImage.alt = 'Original Image';
@@ -89,19 +101,19 @@ function showOriginalImage(imagePath, index) {
 function showPreviousImage() {
     if (currentImageIndex > 0) {
         currentImageIndex--;
-        showOriginalImage(currentImages[currentImageIndex].path, currentImageIndex);
+        showOriginalImage(currentImages[currentImageIndex].path);
     }
 }
 
 function showNextImage() {
     if (currentImageIndex < currentImages.length - 1) {
         currentImageIndex++;
-        showOriginalImage(currentImages[currentImageIndex].path, currentImageIndex);
+        showOriginalImage(currentImages[currentImageIndex].path);
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    fetchAndDisplayFolders();
+    moveToDirectory('/data');
 });
 
 function fetchAndDisplayFolders(directory = '/data') {
@@ -118,8 +130,7 @@ function fetchAndDisplayFolders(directory = '/data') {
                 const button = document.createElement('button');
                 button.textContent = folder;
                 button.addEventListener('click', () => {
-                    fetchAndDisplayFolders(`${directory}/${folder}`);
-                    fetchImages(`${directory}/${folder}`);
+                    moveToDirectory(`${directory}/${folder}`);
                 });
                 folderList.appendChild(button);
 
@@ -194,7 +205,7 @@ function showContextMenu(event, name, directory) {
     contextMenu.style.top = `${event.clientY}px`;
     contextMenu.style.left = `${event.clientX}px`;
 
-    console.log(`Context menu position: top=${event.clientY}, left=${event.clientX}`);
+    debugLog(`Context menu position: top=${event.clientY}, left=${event.clientX}`);
 
     const compressOption = document.createElement('button');
     compressOption.textContent = 'Compress and Delete';
@@ -262,4 +273,37 @@ function renameFolder(oldName, newName, directory) {
             fetchAndDisplayFolders(directory); // 重新整理 sidebar
         })
         .catch(error => console.error('Error renaming folder:', error));
+}
+
+function updateConfig(directory, index) {
+    if (index == -1) {
+        return ;
+    }
+    const config = { index };
+    fetch(`/api/config/update?directory=${encodeURIComponent(directory)}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(config) // 確保這裡傳遞的是 JSON 字符串
+    })
+    .catch(error => console.error('Error updating config:', error));
+}
+
+function loadConfig(directory){
+    // 讀取配置文件並顯示對應的圖片
+    return fetch(`/api/config?directory=${encodeURIComponent(directory)}`)
+        .then(response => response.json())
+        .then(config => {
+            debugLog(`Check config: ${JSON.stringify(config)}`);
+            if (config.data && config.data.index !== undefined) {
+                return config.data.index;
+            }
+            return -1;
+        })
+        .catch(error => console.error('Error fetching config:', error));
+}
+
+function debugLog(message) {
+    console.log(message);
 }

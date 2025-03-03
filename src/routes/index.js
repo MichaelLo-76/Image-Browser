@@ -48,4 +48,26 @@ router.post('/rename', async (req, res) => {
     }
 });
 
+router.get('/config', async (req, res) => {
+    const directory = req.query.directory;
+    try {
+        const configData = await fileController.readConfig(directory);
+        res.json({ message: 'Config read successfully', data: configData });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
+router.post('/config/update', async (req, res) => {
+    const directory = req.query.directory;
+    const newConfig = req.body;
+    try {
+        await fileController.updateConfig(directory, newConfig);
+        res.json({ message: 'Config updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 module.exports = router;

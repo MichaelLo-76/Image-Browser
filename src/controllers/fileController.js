@@ -121,6 +121,30 @@ class FileController {
     isIgnore(fileName) {
         return fileName.startsWith('@') || fileName.startsWith('#recycle') || fileName.startsWith('thumbnails');
     }
+
+    async readConfig(directory) {
+        const configPath = this.path.join(this.staticDir, directory, 'config.json');
+        try {
+            const configContent = await this.fs.readFile(configPath, 'utf-8');
+            return JSON.parse(configContent);
+        } catch (err) {
+            if (err.code === 'ENOENT') {
+                // 如果配置文件不存在，返回默認配置
+                return { index: 0 };
+            } else {
+                throw new Error(`Error reading config file: ${err.message}`);
+            }
+        }
+    }
+
+    async updateConfig(directory, config) {
+        const configPath = this.path.join(this.staticDir, directory, 'config.json');
+        try {
+            await this.fs.writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8');
+        } catch (err) {
+            throw new Error(`Error updating config file: ${err.message}`);
+        }
+    }
 }
 
 module.exports = { FileController };
