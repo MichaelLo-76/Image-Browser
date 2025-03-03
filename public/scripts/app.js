@@ -276,7 +276,7 @@ function renameFolder(oldName, newName, directory) {
 }
 
 function updateConfig(directory, index) {
-    if (index == -1) {
+    if (index == -1 || currentImages.length == 0) {
         return ;
     }
     const config = { index };
@@ -290,7 +290,7 @@ function updateConfig(directory, index) {
     .catch(error => console.error('Error updating config:', error));
 }
 
-function loadConfig(directory){
+function loadConfig(directory) {
     // 讀取配置文件並顯示對應的圖片
     return fetch(`/api/config?directory=${encodeURIComponent(directory)}`)
         .then(response => response.json())

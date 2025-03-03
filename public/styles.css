@@ -28,7 +28,7 @@ html {
     flex-shrink: 0;
     padding: 10px;
     overflow-y: auto; /* 超出容器寬度時顯示縱向滾動條 */
-    padding-top: 50px; /* 讓 Sidebar 內的按鈕下移 */
+    padding-top: 60px; /* 讓 Sidebar 內的按鈕下移 */
 }
 
 /* 手機版樣式（螢幕寬度小於 768px） */
@@ -44,7 +44,7 @@ html {
     min-width: 120px; /* 限制最小寬度 */
     transition: width 0.3s ease-in-out;
     overflow-y: auto; /* 超出容器寬度時顯示縱向滾動條 */
-    padding-top: 50px; /* 讓 Sidebar 內的按鈕下移 */
+    padding-top: 60px; /* 讓 Sidebar 內的按鈕下移 */
   }
 }
 
@@ -61,7 +61,7 @@ html {
     min-width: 80px;
     transition: width 0.3s ease-in-out;
     overflow-y: auto; /* 超出容器寬度時顯示縱向滾動條 */
-    padding-top: 50px; /* 讓 Sidebar 內的按鈕下移 */
+    padding-top: 60px; /* 讓 Sidebar 內的按鈕下移 */
   }
 }
 

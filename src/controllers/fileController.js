@@ -1,5 +1,7 @@
 const fs = require('fs'); // 使用 fs 來獲取 createReadStream 方法
-const sharp = require('sharp');
+
+const { ImageHandler } = require('./imageHandler');
+const imageHandler = new ImageHandler();
 
 class FileController {
     constructor() {
@@ -43,20 +45,6 @@ class FileController {
         }
     }
 
-    async generateThumbnail(imagePath, thumbnailPath) {
-        try {
-            const thumbnailDir = this.path.dirname(thumbnailPath);
-            await this.fs.mkdir(thumbnailDir, { recursive: true }); // 確保縮略圖目錄存在
-            await sharp(imagePath)
-                .resize({ width: 100, height: 100, fit: 'inside' }) // 設置縮略圖大小並保持原圖比例
-                .toFile(thumbnailPath);
-            console.log(`Thumbnail generated: ${thumbnailPath}`);
-        } catch (err) {
-            console.error(`Error generating thumbnail: ${thumbnailPath}`, err);
-            throw err;
-        }
-    }
-
     async getImages(directory, regenThumbnail) {
         try {
             const dirPath = this.path.join(this.staticDir, directory);
@@ -78,7 +66,7 @@ class FileController {
                     // 檢查縮略圖是否存在，如果不存在則生成縮略圖
                     const thumbnailExists = await this.fs.access(thumbnailPath).then(() => true).catch(() => false);
                     if (!thumbnailExists) {
-                        await this.generateThumbnail(imagePath, thumbnailPath);
+                        await imageHandler.generateThumbnail(imagePath, thumbnailPath);
                     }
 
                     images.push({
