@@ -1,0 +1,43 @@
+
+/* 頂部 Header，高度自適應 */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    background-color: #f8f8f8;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Toggle 按鈕樣式 */
+.sidebar-toggle {
+    top: 10px;
+    left: 10px;
+    background: black;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+#header-topic {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#favorite-button {
+    font-size: 24px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+#favorite-button.favorited {
+    color: gold;
+}
+
+#favorite-button.hidden {
+    visibility: hidden;
+}

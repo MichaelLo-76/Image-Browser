@@ -9,30 +9,32 @@
 </head>
 
 <body>
-    <div class="header">
-        <button id="toggleSidebar" class="sidebar-toggle">☰</button>
-        <span id="header-topic">Current Folder Name</span>
-        <button id="favorite-button" class="favorite">☆</button>
-    </div>
     <div class="container">
-        <div id="sidebar">
-            <button id="back-button">Back</button>
-            <button id="root-button">Root</button>
-            <button id="clear-image-button">Clear Image</button>
-            <button id="show-favorite-button">Show Favorite</button>
-            <hr>
-            <ul id="folder-list">
-                <!-- Folder structure will be populated here -->
-            </ul>
+        <div class="header">
+            <button id="toggleSidebar" class="sidebar-toggle">☰</button>
+            <span id="header-topic">Current Folder Name</span>
+            <button id="favorite-button" class="favorite">☆</button>
         </div>
-        <div class="content">
-            <div class="thumbnails">
-                <div id="thumbnail-list">
-                    <!-- Image thumbnails will be populated here -->
-                </div>
+        <div class="main">
+            <div id="sidebar">
+                <button id="back-button">Back</button>
+                <button id="root-button">Root</button>
+                <button id="clear-image-button">Clear Image</button>
+                <button id="show-favorite-button">Show Favorite</button>
+                <hr>
+                <ul id="folder-list">
+                    <!-- Folder structure will be populated here -->
+                </ul>
             </div>
-            <div class="original-image" id="original-image">
-                <!-- Original image will be displayed here -->
+            <div class="content">
+                <div class="thumbnails">
+                    <div id="thumbnail-list">
+                        <!-- Image thumbnails will be populated here -->
+                    </div>
+                </div>
+                <div class="original-image" id="original-image">
+                    <!-- Original image will be displayed here -->
+                </div>
             </div>
         </div>
     </div>

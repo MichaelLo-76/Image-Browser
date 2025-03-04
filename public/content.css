@@ -1,0 +1,77 @@
+.content {
+    flex-grow: 1; /* 讓 Content 自適應填滿可用空間 */
+    display: flex;
+    flex-direction: column;
+    transition: margin-left 0.3s ease-in-out; /* 平滑動畫 */
+    margin-left: 0; /* 確保初始狀態 */
+    overflow: hidden;
+}
+
+/* 當 Sidebar 隱藏時，右側區域的 margin-left 需要調整 */
+#sidebar.hidden + .content {
+    left: 0;
+    margin-left: 0;
+}
+
+.thumbnails {
+    display: flex;
+    flex-direction: row;
+    /* 確保圖片橫向排列 */
+    overflow-x: auto;
+    /* 超出容器寬度時顯示橫向滾動條 */
+    overflow-y: hidden;
+    margin-bottom: 10px;
+    gap: 10px;
+    /* 圖片之間的間距 */
+    max-width: 100%;
+    /* 容器寬度最大為 100% */
+    padding: 10px;
+    /* 容器內部的間距 */
+    height: 100px;
+    /* 父容器高度設定為 100px */
+    white-space: nowrap; /* 確保圖片不換行 */
+}
+
+.thumbnails img {
+    max-height: 90%;
+    width: auto;
+    cursor: pointer;
+    display: inline-block; /* 確保圖片橫向排列 */
+}
+
+.original-image {
+    display: flex;
+    flex: 1; 
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.original-image img {
+    object-fit: scale-down;
+    max-width: 100%;
+    max-height: 100%;
+}
+
+#favorite-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#favorite-list li {
+    margin: 10px 0;
+}
+
+#favorite-list button {
+    width: 100%;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    text-align: left;
+}
+
+#favorite-list button:hover {
+    background-color: #f0f0f0;
+}

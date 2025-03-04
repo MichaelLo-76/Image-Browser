@@ -1,3 +1,7 @@
+@import url('header.css');
+@import url('sidebar.css');
+@import url('content.css');
+
 body,
 html {
     margin: 0;
@@ -7,233 +11,18 @@ html {
     font-family: Arial, sans-serif;
 }
 
+/* 確保整個畫面滿版 */
 .container {
     display: flex;
     height: 100vh;
     position: relative;
-}
-
-/* 預設電腦版樣式 */
-#sidebar {
-    background: lightgray;
-    position: absolute;  /* 使用絕對定位 */
-    top: 0;
-    left: 0;
-    height: 100%;
-    transition: transform 0.3s ease-in-out;  /* 滑動效果 */
-    z-index: 900; /* 確保 Sidebar 在上層 */
-    width: 20%;  /* 讓 sidebar 佔 20% 螢幕寬度 */
-    min-width: 250px;  /* 避免太窄 */
-    max-width: 300px;  /* 避免太寬 */
-    flex-shrink: 0;
-    padding: 10px;
-    overflow-y: auto; /* 超出容器寬度時顯示縱向滾動條 */
-    padding-top: 10px; /* 讓 Sidebar 內的按鈕下移 */
-}
-
-/* 手機版樣式（螢幕寬度小於 768px） */
-@media screen and (max-width: 768px) {
-  #sidebar {
-    background: lightgray;
-    position: absolute;  /* 使用絕對定位 */
-    top: 0;
-    left: 0;
-    height: 100%;
-    z-index: 900; /* 確保 Sidebar 在上層 */
-    width: 25%;  /* 在手機上 sidebar 佔 25% */
-    min-width: 120px; /* 限制最小寬度 */
-    transition: width 0.3s ease-in-out;
-    overflow-y: auto; /* 超出容器寬度時顯示縱向滾動條 */
-    padding-top: 10px; /* 讓 Sidebar 內的按鈕下移 */
-  }
-}
-
-/* 更小的手機（螢幕寬度小於 480px） */
-@media screen and (max-width: 480px) {
-  #sidebar {
-    background: lightgray;
-    position: absolute;  /* 使用絕對定位 */
-    top: 0;
-    left: 0;
-    height: 100%;
-    z-index: 900; /* 確保 Sidebar 在上層 */
-    width: 30%;  /* 讓 sidebar 佔 30% 畫面 */
-    min-width: 80px;
-    transition: width 0.3s ease-in-out;
-    overflow-y: auto; /* 超出容器寬度時顯示縱向滾動條 */
-    padding-top: 10px; /* 讓 Sidebar 內的按鈕下移 */
-  }
-}
-
-#sidebar ul {
-    list-style-type: none; /* 移除列表項前面的點 */
-    padding: 0;
-    margin: 0; /* 重置外邊距 */
-}
-
-#sidebar button {
-    margin-top: 10px; /* 讓 Sidebar 內的按鈕往下移 */
-    display: block;
-    width: 100%;
-    margin: 5px 0;
-    padding: 10px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    text-align: left;
-}
-
-#sidebar button:hover {
-    background-color: #f0f0f0;
-}
-
-/* Sidebar 隱藏狀態 */
-#sidebar.hidden {
-    transform: translateX(-100%);
-}
-
-/* Toggle 按鈕樣式 */
-.sidebar-toggle {
-    /* position: fixed; */
-    top: 10px;
-    left: 10px;
-    background: black;
-    color: white;
-    border: none;
-    padding: 10px 15px;
-    font-size: 18px;
-    cursor: pointer;
-    border-radius: 5px;
-    /*z-index: 1000;  確保在最上層 */
-}
-
-.context-menu {
     flex-direction: column;
-    position: absolute;
-    background-color: white;
-    border: 1px solid #ccc;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-    z-index: 1000;
-    padding: 10px;
-}
-
-.button-container {
-    display: flex;
-    align-items: center;
-}
-
-.menu-button {
-    margin-left: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.content {
-    flex-grow: 1;  /* 右側區域填滿剩餘空間 */
-    width: 100%;
-    height: 100%;
-    transition: margin-left 0.3s ease-in-out; /* 過渡效果 */
-    position: relative;
-    left: 0;
-}
-
-/* 當 Sidebar 隱藏時，右側區域的 margin-left 需要調整 */
-#sidebar.hidden + .content {
-    left: 0;
-}
-
-.thumbnails {
-    display: flex;
-    flex-direction: row;
-    /* 確保圖片橫向排列 */
-    overflow-x: auto;
-    /* 超出容器寬度時顯示橫向滾動條 */
-    overflow-y: hidden;
-    margin-bottom: 10px;
-    gap: 10px;
-    /* 圖片之間的間距 */
-    max-width: 100%;
-    /* 容器寬度最大為 100% */
-    padding: 10px;
-    /* 容器內部的間距 */
-    height: 100px;
-    /* 父容器高度設定為 100px */
-    white-space: nowrap; /* 確保圖片不換行 */
-}
-
-.thumbnails img {
-    max-height: 90%;
-    width: auto;
-    cursor: pointer;
-    display: inline-block; /* 確保圖片橫向排列 */
-}
-
-.original-image {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     overflow: hidden;
-    height: calc(100% - 100px); /* 剩餘高度 */
 }
 
-.original-image img {
-    object-fit: scale-down;
-    max-width: 100%;
-    max-height: 100%;
-    width: auto;
-    height: auto;
-}
-
-.header {
+/* 主內容區域，包含 Sidebar 和 Content */
+.main {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background-color: #f8f8f8;
-    border-bottom: 1px solid #ddd;
-}
-
-#header-topic {
-    font-size: 18px;
-    font-weight: bold;
-}
-
-#favorite-button {
-    font-size: 24px;
-    background: none;
-    border: none;
-    cursor: pointer;
-}
-
-#favorite-button.favorited {
-    color: gold;
-}
-
-#favorite-button.hidden {
-    visibility: hidden;
-}
-
-#favorite-list {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
-}
-
-#favorite-list li {
-    margin: 10px 0;
-}
-
-#favorite-list button {
-    width: 100%;
-    padding: 10px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    cursor: pointer;
-    text-align: left;
-}
-
-#favorite-list button:hover {
-    background-color: #f0f0f0;
+    flex: 1; /* 填滿 Header 以外的空間 */
+    overflow: hidden;
 }
