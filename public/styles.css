@@ -195,7 +195,7 @@ html {
     border-bottom: 1px solid #ddd;
 }
 
-#folder-name {
+#header-topic {
     font-size: 18px;
     font-weight: bold;
 }
@@ -209,4 +209,31 @@ html {
 
 #favorite-button.favorited {
     color: gold;
+}
+
+#favorite-button.hidden {
+    visibility: hidden;
+}
+
+#favorite-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#favorite-list li {
+    margin: 10px 0;
+}
+
+#favorite-list button {
+    width: 100%;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    cursor: pointer;
+    text-align: left;
+}
+
+#favorite-list button:hover {
+    background-color: #f0f0f0;
 }

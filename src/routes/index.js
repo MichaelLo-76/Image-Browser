@@ -73,7 +73,6 @@ router.post('/config/update', async (req, res) => {
 
 router.get('/favorites', async (req, res) => {
     const folder = req.query.folder;
-    console.log(`get favorites of ${folder}`);
     try {
         const isFavorited = await favoriteController.isFavorited(folder);
         res.json({ isFavorited });
@@ -84,7 +83,6 @@ router.get('/favorites', async (req, res) => {
 
 router.post('/favorites', async (req, res) => {
     const folder = req.body.folder;
-    console.log(`set favorites of ${folder}`);
     try {
         await favoriteController.addFavorite(folder);
         res.json({ message: 'Folder added to favorites' });
@@ -95,10 +93,18 @@ router.post('/favorites', async (req, res) => {
 
 router.delete('/favorites', async (req, res) => {
     const folder = req.body.folder;
-    console.log(`unfavor of ${folder}`);
     try {
         await favoriteController.removeFavorite(folder);
         res.json({ message: 'Folder removed from favorites' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/favorites/list', async (req, res) => {
+    try {
+        const favoriteList = await favoriteController.listFavorites();
+        res.json({ favoriteList });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

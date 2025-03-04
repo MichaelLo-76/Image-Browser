@@ -1,18 +1,28 @@
-const imageContainer = document.getElementById('original-image');
-const thumbnailList = document.getElementById('thumbnail-list');
+imageContainer = document.getElementById('original-image');
+thumbnailList = document.getElementById('thumbnail-list');
 const backButton = document.getElementById('back-button');
 const rootButton = document.getElementById('root-button');
 const clearImageButton = document.getElementById('clear-image-button');
 const favoriteButton = document.getElementById('favorite-button');
+const showFavoriteButton = document.getElementById('show-favorite-button');
+const contentContainer = document.querySelector('.content');
+const headerTopic = document.getElementById('header-topic');
 
 let currentDirectory = '';
 let currentImageIndex = -1;
 let currentImages = [];
 
-async function moveToDirectory(directory) {
+function leaveDirectory() {
     updateConfig(currentDirectory, currentImageIndex);
+    imageContainer.innerHTML = ''; // 清空 original-image 容器
+}
+
+async function moveToDirectory(directory) {
+    leaveDirectory();
+    // 重新生成圖片顯示區域
+    renderContent();
     currentDirectory = directory;
-    updateHeader(currentDirectory);
+    updateHeader(currentDirectory, true);
     fetchAndDisplayFolders(currentDirectory);
     await fetchImages(currentDirectory);
     currentImageIndex = await loadConfig(currentDirectory);
@@ -21,6 +31,22 @@ async function moveToDirectory(directory) {
         showOriginalImage(currentImages[currentImageIndex].path);
         debugLog(`Displayed image at index ${currentImageIndex}`);
     }
+}
+
+function renderContent() {
+    contentContainer.innerHTML = `
+        <div class="thumbnails">
+            <div id="thumbnail-list">
+                <!-- Image thumbnails will be populated here -->
+            </div>
+        </div>
+        <div class="original-image" id="original-image">
+            <!-- Original image will be displayed here -->
+        </div>
+    `;
+    // 重新獲取 imageContainer 和 thumbnailList 的引用
+    imageContainer = document.getElementById('original-image');
+    thumbnailList = document.getElementById('thumbnail-list');
 }
 
 backButton.addEventListener('click', () => {
@@ -36,6 +62,37 @@ rootButton.addEventListener('click', () => {
 clearImageButton.addEventListener('click', () => {
     imageContainer.innerHTML = ''; // 清空 original-image 容器
     fetchImages(currentDirectory, true);
+});
+
+function fetchFavorites() {
+    fetch('/api/favorites/list')
+        .then(response => response.json())
+        .then(data => {
+            contentContainer.innerHTML = ''; // 清空 content 容器
+
+            const favoriteList = document.createElement('ul');
+            favoriteList.id = 'favorite-list';
+
+            data.favoriteList.forEach(folder => {
+                const button = document.createElement('button');
+                button.textContent = folder;
+                button.addEventListener('click', () => {
+                    moveToDirectory(folder);
+                });
+                const listItem = document.createElement('li');
+                listItem.appendChild(button);
+                favoriteList.appendChild(listItem);
+            });
+
+            contentContainer.appendChild(favoriteList);
+        })
+        .catch(error => console.error('Error fetching favorites:', error));
+    updateHeader('Favorite Folders', false);
+}
+
+showFavoriteButton.addEventListener('click', () => {
+    leaveDirectory();
+    fetchFavorites();
 });
 
 favoriteButton.addEventListener('click', () => {
@@ -318,26 +375,35 @@ function loadConfig(directory) {
         .catch(error => console.error('Error fetching config:', error));
 }
 
-function updateHeader(directory) {
-    const folderName = document.getElementById('folder-name');
-    folderName.textContent = directory;
+function updateHeader(topic, showFavorButton) {
+    headerTopic.textContent = topic;
 
-    // Check if the current folder is already favorited
-    fetch(`/api/favorites?folder=${encodeURIComponent(directory)}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.isFavorited) {
-                console.log("Favorited dir");
-                favoriteButton.classList.add('favorited');
-                favoriteButton.textContent = '★';
-            } else {
-                console.log("Not Favorited dir");
-                favoriteButton.classList.remove('favorited');
-                favoriteButton.textContent = '☆';
-            }
-        });
+    if (!showFavorButton) {
+        favoriteButton.classList.add("hidden");
+    } else {
+        favoriteButton.classList.remove("hidden");
+        directory = topic;
+        // Check if the current folder is already favorited
+        fetch(`/api/favorites?folder=${encodeURIComponent(directory)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.isFavorited) {
+                    console.log("Favorited dir");
+                    favoriteButton.classList.add('favorited');
+                    favoriteButton.textContent = '★';
+                } else {
+                    console.log("Not Favorited dir");
+                    favoriteButton.classList.remove('favorited');
+                    favoriteButton.textContent = '☆';
+                }
+            });
+    }
 }
 
 function debugLog(message) {
+    // const logDiv = document.getElementById("debug-log");
+    // if (logDiv) {
+    //     logDiv.innerHTML += `<p>${message}</p>`;
+    // }
     console.log(message);
 }

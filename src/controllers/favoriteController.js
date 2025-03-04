@@ -13,6 +13,11 @@ class FavoriteController {
     async removeFavorite(folder) {
         await db.Favorite.destroy({ where: { folder } });
     }
+
+    async listFavorites() {
+        const favorites = await db.Favorite.findAll({ attributes: ['folder'] });
+        return favorites.map(fav => fav.folder);
+    }
 }
 
 module.exports = { FavoriteController };
