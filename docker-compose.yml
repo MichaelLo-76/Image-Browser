@@ -10,5 +10,11 @@ services:
       - .:/app
       - /app/node_modules
       - /volume1:/volume1
+      - sqlite_data:/app/data  # ✅ 確保 SQLite 資料庫檔案持久化
     environment:
       - NODE_ENV=development
+    command: >
+      sh -c "node src/sync.js && npm start"  # ✅ 先同步 SQLite 資料表，再啟動應用
+
+volumes:
+  sqlite_data:  # ✅ 定義 Volume，確保 SQLite 資料庫可持久化存放

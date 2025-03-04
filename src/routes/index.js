@@ -1,10 +1,12 @@
 const express = require('express');
 const { FileController } = require('../controllers/fileController');
 const { ArchiveHandler } = require('../controllers/archiveHandler');
+const { FavoriteController } = require('../controllers/favoriteController');
 
 const router = express.Router();
 const fileController = new FileController();
 const archiveHandler = new ArchiveHandler();
+const favoriteController = new FavoriteController();
 
 router.get('/folders', (req, res) => {
     const directory = req.query.directory || ''; // 從查詢參數中獲取目錄路徑，默認為根目錄
@@ -58,13 +60,45 @@ router.get('/config', async (req, res) => {
     }
 });
 
-
 router.post('/config/update', async (req, res) => {
     const directory = req.query.directory;
     const newConfig = req.body;
     try {
         await fileController.updateConfig(directory, newConfig);
         res.json({ message: 'Config updated successfully' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/favorites', async (req, res) => {
+    const folder = req.query.folder;
+    console.log(`get favorites of ${folder}`);
+    try {
+        const isFavorited = await favoriteController.isFavorited(folder);
+        res.json({ isFavorited });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.post('/favorites', async (req, res) => {
+    const folder = req.body.folder;
+    console.log(`set favorites of ${folder}`);
+    try {
+        await favoriteController.addFavorite(folder);
+        res.json({ message: 'Folder added to favorites' });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.delete('/favorites', async (req, res) => {
+    const folder = req.body.folder;
+    console.log(`unfavor of ${folder}`);
+    try {
+        await favoriteController.removeFavorite(folder);
+        res.json({ message: 'Folder removed from favorites' });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

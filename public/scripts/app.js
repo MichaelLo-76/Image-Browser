@@ -3,17 +3,18 @@ const thumbnailList = document.getElementById('thumbnail-list');
 const backButton = document.getElementById('back-button');
 const rootButton = document.getElementById('root-button');
 const clearImageButton = document.getElementById('clear-image-button');
+const favoriteButton = document.getElementById('favorite-button');
 
 let currentDirectory = '';
 let currentImageIndex = -1;
 let currentImages = [];
 
 async function moveToDirectory(directory) {
-    const previousDirectory = currentDirectory;
+    updateConfig(currentDirectory, currentImageIndex);
     currentDirectory = directory;
-    await fetchImages(currentDirectory);
-    updateConfig(previousDirectory, currentImageIndex);
+    updateHeader(currentDirectory);
     fetchAndDisplayFolders(currentDirectory);
+    await fetchImages(currentDirectory);
     currentImageIndex = await loadConfig(currentDirectory);
     debugLog(`currentImageIndex: ${currentImageIndex}, currentImages.length: ${currentImages.length}`);
     if (currentImageIndex > -1 && currentImages.length > 0) {
@@ -35,6 +36,19 @@ rootButton.addEventListener('click', () => {
 clearImageButton.addEventListener('click', () => {
     imageContainer.innerHTML = ''; // 清空 original-image 容器
     fetchImages(currentDirectory, true);
+});
+
+favoriteButton.addEventListener('click', () => {
+    const isFavorited = favoriteButton.classList.toggle('favorited');
+    favoriteButton.textContent = isFavorited ? '★' : '☆';
+
+    fetch(`/api/favorites`, {
+        method: isFavorited ? 'POST' : 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ folder: currentDirectory })
+    });
 });
 
 document.getElementById("toggleSidebar").addEventListener("click", function () {
@@ -302,6 +316,26 @@ function loadConfig(directory) {
             return -1;
         })
         .catch(error => console.error('Error fetching config:', error));
+}
+
+function updateHeader(directory) {
+    const folderName = document.getElementById('folder-name');
+    folderName.textContent = directory;
+
+    // Check if the current folder is already favorited
+    fetch(`/api/favorites?folder=${encodeURIComponent(directory)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.isFavorited) {
+                console.log("Favorited dir");
+                favoriteButton.classList.add('favorited');
+                favoriteButton.textContent = '★';
+            } else {
+                console.log("Not Favorited dir");
+                favoriteButton.classList.remove('favorited');
+                favoriteButton.textContent = '☆';
+            }
+        });
 }
 
 function debugLog(message) {
