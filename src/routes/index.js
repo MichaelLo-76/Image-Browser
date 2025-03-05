@@ -103,8 +103,8 @@ router.delete('/favorites', async (req, res) => {
 
 router.get('/favorites/list', async (req, res) => {
     try {
-        const favoriteList = await favoriteController.listFavorites();
-        res.json({ favoriteList });
+        const folderList = await favoriteController.listFavorites();
+        res.json({ folderList });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

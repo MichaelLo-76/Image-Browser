@@ -1,11 +1,12 @@
-imageContainer = document.getElementById('original-image');
-thumbnailList = document.getElementById('thumbnail-list');
-const backButton = document.getElementById('back-button');
-const rootButton = document.getElementById('root-button');
-const clearImageButton = document.getElementById('clear-image-button');
-const favoriteButton = document.getElementById('favorite-button');
-const showFavoriteButton = document.getElementById('show-favorite-button');
+import Api from "./api.js"
+import setupEventHandlers from "./eventHandler.js"
+
+const api = new Api();
+
 const contentContainer = document.querySelector('.content');
+let imageContainer = document.getElementById('original-image');
+let thumbnailList = document.getElementById('thumbnail-list');
+const favoriteButton = document.getElementById('favorite-button');
 const headerTopic = document.getElementById('header-topic');
 
 let currentDirectory = '';
@@ -18,14 +19,22 @@ function leaveDirectory() {
 }
 
 async function moveToDirectory(directory) {
-    leaveDirectory();
-    // 重新生成圖片顯示區域
-    renderContent();
+    await leaveDirectory();
     currentDirectory = directory;
     updateHeader(currentDirectory, true);
-    fetchAndDisplayFolders(currentDirectory);
-    await fetchImages(currentDirectory);
-    currentImageIndex = await loadConfig(currentDirectory);
+    fetchAndUpdateSideBar(currentDirectory);
+    showImages();
+}
+
+async function loadImages(directory, regenThumbnail = false) {
+    currentImages = await api.fetchImages(directory, regenThumbnail);
+}
+
+async function showImages() {
+    await renderContentForImages();
+    await loadImages(currentDirectory);
+    renderThumbnails(currentImages);
+    currentImageIndex = await loadIndex(currentDirectory);
     debugLog(`currentImageIndex: ${currentImageIndex}, currentImages.length: ${currentImages.length}`);
     if (currentImageIndex > -1 && currentImages.length > 0) {
         showOriginalImage(currentImages[currentImageIndex].path);
@@ -33,7 +42,7 @@ async function moveToDirectory(directory) {
     }
 }
 
-function renderContent() {
+function renderContentForImages() {
     contentContainer.innerHTML = `
         <div class="thumbnails">
             <div id="thumbnail-list">
@@ -47,80 +56,6 @@ function renderContent() {
     // 重新獲取 imageContainer 和 thumbnailList 的引用
     imageContainer = document.getElementById('original-image');
     thumbnailList = document.getElementById('thumbnail-list');
-}
-
-backButton.addEventListener('click', () => {
-    const parts = currentDirectory.split('/');
-    parts.pop(); // 移除最後一個部分
-    moveToDirectory(parts.join('/'));
-});
-
-rootButton.addEventListener('click', () => {
-    moveToDirectory('/data');
-});
-
-clearImageButton.addEventListener('click', () => {
-    imageContainer.innerHTML = ''; // 清空 original-image 容器
-    fetchImages(currentDirectory, true);
-});
-
-function fetchFavorites() {
-    fetch('/api/favorites/list')
-        .then(response => response.json())
-        .then(data => {
-            contentContainer.innerHTML = ''; // 清空 content 容器
-
-            const favoriteList = document.createElement('ul');
-            favoriteList.id = 'favorite-list';
-
-            data.favoriteList.forEach(folder => {
-                const button = document.createElement('button');
-                button.textContent = folder;
-                button.addEventListener('click', () => {
-                    moveToDirectory(folder);
-                });
-                const listItem = document.createElement('li');
-                listItem.appendChild(button);
-                favoriteList.appendChild(listItem);
-            });
-
-            contentContainer.appendChild(favoriteList);
-        })
-        .catch(error => console.error('Error fetching favorites:', error));
-    updateHeader('Favorite Folders', false);
-}
-
-showFavoriteButton.addEventListener('click', () => {
-    leaveDirectory();
-    fetchFavorites();
-});
-
-favoriteButton.addEventListener('click', () => {
-    const isFavorited = favoriteButton.classList.toggle('favorited');
-    favoriteButton.textContent = isFavorited ? '★' : '☆';
-
-    fetch(`/api/favorites`, {
-        method: isFavorited ? 'POST' : 'DELETE',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ folder: currentDirectory })
-    });
-});
-
-document.getElementById("toggleSidebar").addEventListener("click", function () {
-    let sidebar = document.getElementById("sidebar");
-    sidebar.classList.toggle("hidden");
-});
-
-function fetchImages(directory, regenThumbnail = false) {
-    return fetch(`/api/images?directory=${encodeURIComponent(directory)}&regenThumbnail=${encodeURIComponent(regenThumbnail)}`)
-        .then(response => response.json())
-        .then(data => {
-            currentImages = data; // 存儲當前目錄的圖片列表
-            renderThumbnails(data);
-        })
-        .catch(error => console.error('Error fetching images:', error));
 }
 
 function renderThumbnails(images) {
@@ -183,11 +118,29 @@ function showNextImage() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-    moveToDirectory('/data');
-});
+async function showFavoriteFolders() {
+    updateHeader('Favorite Folders', false);
 
-function fetchAndDisplayFolders(directory = '/data') {
+    contentContainer.innerHTML = '';
+    const data = await api.fetchFavoriteFolderList();
+    const favoriteList = document.createElement('ul');
+    favoriteList.id = 'favorite-list';
+
+    data.folderList.forEach(folder => {
+        const button = document.createElement('button');
+        button.textContent = folder;
+        button.addEventListener('click', () => {
+            moveToDirectory(folder);
+        });
+        const listItem = document.createElement('li');
+        listItem.appendChild(button);
+        favoriteList.appendChild(listItem);
+    });
+
+    contentContainer.appendChild(favoriteList);
+}
+
+function fetchAndUpdateSideBar(directory = '/data') {
     imageContainer.innerHTML = ''; // 清空 original-image 容器
     fetch(`/api/folders?directory=${encodeURIComponent(directory)}`)
         .then(response => response.json())
@@ -245,7 +198,7 @@ function fetchAndDisplayFolders(directory = '/data') {
                             }
                         })
                         .then(() => {
-                            fetchAndDisplayFolders(directory); // 重新整理 sidebar
+                            fetchAndUpdateSideBar(directory); // 重新整理 sidebar
                         })
                         .catch(error => console.error('Error unzipping archive:', error));
                 });
@@ -317,7 +270,7 @@ function compressAndDelete(name, directory) {
             }
         })
         .then(() => {
-            fetchAndDisplayFolders(directory); // 重新整理 sidebar
+            fetchAndUpdateSideBar(directory); // 重新整理 sidebar
         })
         .catch(error => console.error('Error compressing and deleting folder:', error));
 }
@@ -341,7 +294,7 @@ function renameFolder(oldName, newName, directory) {
             }
         })
         .then(() => {
-            fetchAndDisplayFolders(directory); // 重新整理 sidebar
+            fetchAndUpdateSideBar(directory); // 重新整理 sidebar
         })
         .catch(error => console.error('Error renaming folder:', error));
 }
@@ -351,28 +304,18 @@ function updateConfig(directory, index) {
         return ;
     }
     const config = { index };
-    fetch(`/api/config/update?directory=${encodeURIComponent(directory)}`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(config) // 確保這裡傳遞的是 JSON 字符串
-    })
-    .catch(error => console.error('Error updating config:', error));
+    api.updateConfig(directory, config);
 }
 
-function loadConfig(directory) {
-    // 讀取配置文件並顯示對應的圖片
-    return fetch(`/api/config?directory=${encodeURIComponent(directory)}`)
-        .then(response => response.json())
+function loadIndex(directory) {
+    return api.fetchConfig(directory)
         .then(config => {
-            debugLog(`Check config: ${JSON.stringify(config)}`);
             if (config.data && config.data.index !== undefined) {
                 return config.data.index;
             }
             return -1;
         })
-        .catch(error => console.error('Error fetching config:', error));
+        .catch(error => console.error('Error loading config:', error));
 }
 
 function updateHeader(topic, showFavorButton) {
@@ -382,10 +325,7 @@ function updateHeader(topic, showFavorButton) {
         favoriteButton.classList.add("hidden");
     } else {
         favoriteButton.classList.remove("hidden");
-        directory = topic;
-        // Check if the current folder is already favorited
-        fetch(`/api/favorites?folder=${encodeURIComponent(directory)}`)
-            .then(response => response.json())
+        api.fetchFolderFavoriteState(currentDirectory)
             .then(data => {
                 if (data.isFavorited) {
                     console.log("Favorited dir");
@@ -407,3 +347,14 @@ function debugLog(message) {
     // }
     console.log(message);
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+    moveToDirectory('/data');
+});
+
+setupEventHandlers({
+    getCurrentDirectory: () => currentDirectory,
+    moveToDirectory,
+    leaveDirectory,
+    showFavoriteFolders
+});
